@@ -14,15 +14,17 @@ class Scheduler(metaclass=abc.ABCMeta):
                 NotImplemented)
 
     @abc.abstractmethod
-    def solve(self, project: Project):
+    def solve(self, project: Project) -> dict:
         """solve the scheduling problem"""
         raise NotImplementedError
 
 
 class ORToolsScheduler(Scheduler):
-    def solve(self, project: Project):
+    def solve(self, project: Project) -> dict:
         model = cp_model.CpModel()
-        horizon = 15  # TODO: update horizon dynamically from tasks
+        horizon = 0
+        for t in project.tasks:
+            horizon += t.duration
 
         # Global storage of variables.
         intervals_per_resources = collections.defaultdict(list)
@@ -96,18 +98,22 @@ class ORToolsScheduler(Scheduler):
         solution_printer = SolutionPrinter()
         status = solver.Solve(model, solution_printer)
 
+        output = {}  # indexed on task.name, value is task with updated start and resource
+
         # Print final solution.
         for task in project.tasks:
             print(f"Task {task.name}:")
             start_value = solver.Value(starts[task.name])
             resource = -1
-            selected = -1
             for r in project.resources[task.type]:
                 if solver.Value(presences[(task.name, r.name)]):
-                    resource = r.name
+                    resource = r
             print(
-                f"  task {task.name} starts at {start_value} on resource {resource}"
+                f"  task {task.name} starts at {start_value} on resource {resource.name}"
             )
+            task.start = start_value
+            task.resource = resource
+            output[task.name] = task
 
         print('Solve status: %s' % solver.StatusName(status))
         print('Optimal objective value: %i' % solver.ObjectiveValue())
@@ -115,6 +121,8 @@ class ORToolsScheduler(Scheduler):
         print('  - conflicts : %i' % solver.NumConflicts())
         print('  - branches  : %i' % solver.NumBranches())
         print('  - wall time : %f s' % solver.WallTime())
+
+        return output
 
 
 class SolutionPrinter(cp_model.CpSolverSolutionCallback):
