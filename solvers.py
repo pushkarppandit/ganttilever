@@ -7,6 +7,9 @@ import abc
 
 
 class Scheduler(metaclass=abc.ABCMeta):
+    """
+    Base class to define basic interface for solver of scheduling problem
+    """
     @classmethod
     def __subclasshook__(cls, subclass):
         return (hasattr(subclass, 'solve') and
@@ -20,6 +23,10 @@ class Scheduler(metaclass=abc.ABCMeta):
 
 
 class ORToolsScheduler(Scheduler):
+    """
+    Concrete scheduler class using or tools constraint programming to solve scheduling problem
+    """
+
     def solve(self, project: Project) -> dict:
         model = cp_model.CpModel()
         horizon = 0
