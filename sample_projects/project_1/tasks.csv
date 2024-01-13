@@ -1,0 +1,11 @@
+name,duration_days,type,min_start_days,initiative
+"task_1.1", 2, "dev", 0, "one"
+"task_1.2", 3, "dev", 0, "one"
+"task_1.3", 2, "QA", 0, "one"
+"task_1.4", 4, "dev", 0, "one"
+"task_1.5", 2, "QA", 0, "one"
+"task_2.1", 3, "dev", 0, "two"
+"task_2.2", 1, "dev", 0, "two"
+"task_2.3", 1, "QA", 0, "two"
+"task_2.4", 2, "dev", 0, "two"
+"task_2.5", 1, "QA", 0, "two"

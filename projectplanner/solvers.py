@@ -2,7 +2,7 @@
 
 import collections
 from ortools.sat.python import cp_model
-from entities import *
+from .entities import *
 import abc
 
 
