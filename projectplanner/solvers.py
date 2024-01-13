@@ -71,7 +71,7 @@ class ORToolsScheduler(Scheduler):
                     model.Add(start == l_start).OnlyEnforceIf(l_presence)
                     model.Add(end == l_end).OnlyEnforceIf(l_presence)
 
-                    # Add the local interval to the right machine.
+                    # Add the local interval to the right resource.
                     intervals_per_resources[r.name].append(l_interval)
 
                     # Store the presences for the solution.
