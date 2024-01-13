@@ -1,5 +1,6 @@
-from entities import *
-from solvers import ORToolsScheduler
+from projectplanner.entities import *
+from projectplanner.solvers import ORToolsScheduler
+# from projectplanner import *
 
 
 t1 = Task("task_1.1", 2, "dev", 0, "one")
