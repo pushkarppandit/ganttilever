@@ -53,36 +53,32 @@ class ORToolsScheduler(Scheduler):
             starts[task.name] = start
             ends[task.name] = end
 
-            if len(project.resources[task.type]) > 1:
-                l_presences = []
-                for r in project.resources[task.type]:
-                    alt_suffix = f"_{task.name}_{r.name}"
-                    l_presence = model.NewBoolVar('presence' + alt_suffix)
-                    l_start = model.NewIntVar(
-                        task.min_start, horizon, 'start' + alt_suffix)
-                    l_end = model.NewIntVar(
-                        task.min_start, horizon, 'end' + alt_suffix)
-                    l_interval = model.NewOptionalIntervalVar(
-                        l_start, task.duration, l_end, l_presence,
-                        'interval' + alt_suffix)
-                    l_presences.append(l_presence)
+            l_presences = []
+            for r in project.resources[task.type]:
+                alt_suffix = f"_{task.name}_{r.name}"
+                l_presence = model.NewBoolVar('presence' + alt_suffix)
+                # print(alt_suffix,  max(task.min_start,r.start), min(horizon,r.end))
+                l_start = model.NewIntVar(
+                    max(task.min_start,r.start), min(horizon,r.end), 'start' + alt_suffix)
+                l_end = model.NewIntVar(
+                    max(task.min_start,r.start), min(horizon,r.end), 'end' + alt_suffix)
+                l_interval = model.NewOptionalIntervalVar(
+                    l_start, task.duration, l_end, l_presence,
+                    'interval' + alt_suffix)
+                l_presences.append(l_presence)
 
-                    # Link the master variables with the local ones.
-                    model.Add(start == l_start).OnlyEnforceIf(l_presence)
-                    model.Add(end == l_end).OnlyEnforceIf(l_presence)
+                # Link the master variables with the local ones.
+                model.Add(start == l_start).OnlyEnforceIf(l_presence)
+                model.Add(end == l_end).OnlyEnforceIf(l_presence)
 
-                    # Add the local interval to the right resource.
-                    intervals_per_resources[r.name].append(l_interval)
+                # Add the local interval to the right resource.
+                intervals_per_resources[r.name].append(l_interval)
 
-                    # Store the presences for the solution.
-                    presences[(task.name, r.name)] = l_presence
+                # Store the presences for the solution.
+                presences[(task.name, r.name)] = l_presence
 
-                # Select exactly one presence variable.
-                model.AddExactlyOne(l_presences)
-            else:
-                r = project.resources[task.type][0]
-                intervals_per_resources[r.name].append(interval)
-                presences[(task.name, r.name)] = model.NewConstant(1)
+            # Select exactly one presence variable.
+            model.AddExactlyOne(l_presences)
 
         # precedence constraints because of dependencies
         for d in project.graph.edges:
@@ -111,12 +107,13 @@ class ORToolsScheduler(Scheduler):
         for task in project.tasks:
             print(f"Task {task.name}:")
             start_value = solver.Value(starts[task.name])
+            end_value = solver.Value(ends[task.name])
             resource = -1
             for r in project.resources[task.type]:
                 if solver.Value(presences[(task.name, r.name)]):
                     resource = r
             print(
-                f"  task {task.name} starts at {start_value} on resource {resource.name}"
+                f"  task {task.name} starts at {start_value} and ends at {end_value} on resource {resource.name}"
             )
             task.start = start_value
             task.resource = resource
