@@ -14,9 +14,11 @@ class Resource:
     type: type of resource. A task of this type will be fulfilled by this resource.
     """
 
-    def __init__(self, name: str, type: str) -> None:
+    def __init__(self, name: str, type: str, start: int, end: int) -> None:
         self.name = name
         self.type = type
+        self.start = start
+        self.end = end
 
 
 class Task:
@@ -134,9 +136,9 @@ class Project:
         """
         rows = []
         for t in self.tasks:
-            start_dt = pd.Timestamp(start_date) + pd.Timedelta(days=7*t.start)
+            start_dt = pd.Timestamp(start_date) + pd.Timedelta(days=t.start)
             end_dt = pd.Timestamp(start_date) + \
-                pd.Timedelta(days=7*(t.start + t.duration))
+                pd.Timedelta(days=(t.start + t.duration))
             rows.append(dict(task=t.name, start=start_dt, finish=end_dt,
                              resource=t.resource.name, resource_type=t.resource.type, initiative=t.initiative, y=f"{t.initiative} - {t.resource.name}"))
         df = pd.DataFrame(rows).sort_values(by="y").reset_index(drop=True)
@@ -160,7 +162,7 @@ def create_project_from_df(task_df: pd.DataFrame, resource_df: pd.DataFrame, dep
 
     resource_list = []
     for _, row in resource_df.iterrows():
-        resource_list.append(Resource(name=row["name"], type=row["type"]))
+        resource_list.append(Resource(name=row["name"], type=row["type"], start=row["start"], end=row["end"]))
 
     project = Project(tasks=list(task_dict.values()), resources=resource_list)
     for _, row in dependency_df.iterrows():
