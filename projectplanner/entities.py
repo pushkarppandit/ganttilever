@@ -154,16 +154,17 @@ def create_project_from_df(task_df: pd.DataFrame, resource_df: pd.DataFrame, dep
     """
     task_dict = {}
     for _, row in task_df.iterrows():
-        task_dict[row.name] = Task(name=row.name, duration_days=row.duration,
-                                   type=row.type, min_start_days=row.min_start, initiative=row.initiative)
+        task_dict[row["name"]] = Task(name=row["name"], duration_days=row["duration_days"],
+                                   type=row["type"], min_start_days=row["min_start_days"], initiative=row["initiative"])
+    # print(task_dict)
 
     resource_list = []
     for _, row in resource_df.iterrows():
-        resource_df.append(Resource(name=row.name, type=row.type))
+        resource_list.append(Resource(name=row["name"], type=row["type"]))
 
     project = Project(tasks=list(task_dict.values()), resources=resource_list)
     for _, row in dependency_df.iterrows():
-        project.add_dependency(task1=task_dict(
-            row.task1), task2=task_dict(row.task2))
+        project.add_dependency(task1=task_dict[
+            row["task1"]], task2=task_dict[row["task2"]])
 
     return project
